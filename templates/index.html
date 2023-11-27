@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="https://creadn.com.co/assets/img/icono.png">
+    <meta charset="UTF-8">
+    <title>Detección de Tono y Ritmo de Voz</title>
+</head>
+<body>
+    <h1>Detección de Tono y Ritmo de Voz</h1>
+    
+    <button id="start-recording">Comenzar Grabación</button>
+    <button id="stop-recording" style="display: none;">Detener Grabación</button>
+    <audio id="audio-preview" controls style="display: none;"></audio>
+    
+    <script>
+        const startButton = document.getElementById('start-recording');
+        const stopButton = document.getElementById('stop-recording');
+        const audioPreview = document.getElementById('audio-preview');
+
+        
+        let mediaRecorder;
+        const audioChunks = [];
+
+        startButton.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioPreview.src = URL.createObjectURL(audioBlob);
+                        audioPreview.style.display = 'block';
+
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob);
+
+                        fetch('/upload', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            const resultPopup = window.open('', 'Result Popup', 'width=300,height=200');
+                            if (data.resultado === "Desconocido") {
+                                resultPopup.document.write('<h2>Resultado</h2><p>Tono y Ritmo: Desconocido</p>');
+                            } else {
+                                resultPopup.document.write(`<h2>Resultado</h2><p>Tono y Ritmo: ${data.resultado}</p>`);
+                            }
+                        });
+                    };
+                    mediaRecorder.start();
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'block';
+                })
+                .catch(error => console.error('Error al acceder al micrófono:', error));
+        });
+
+        stopButton.addEventListener('click', () => {
+            mediaRecorder.stop();
+            stopButton.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
