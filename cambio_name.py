@@ -1,13 +1,15 @@
-import os
+import os # Importar la librería para interactuar con el sistema operativo
 
 def rename_files(directory, base_name):
+    # Recorre todos los archivos en el directorio dado
     for count, filename in enumerate(os.listdir(directory)):
-        dst = base_name + "_" + str(count) + ".wav"  # Añade un guion bajo y cambia a .wav
-        src = os.path.join(directory, filename)
-        dst = os.path.join(directory, dst)
+        # Crea el nuevo nombre del archivo
+        dst = base_name + str(count) + ".wav"  # Añade un número y la extensión .wav
+        src = os.path.join(directory, filename)  # Ruta completa del archivo original
+        dst = os.path.join(directory, dst)  # Ruta completa del nuevo archivo
 
-        os.rename(src, dst)  # Renombra el archivo
+        # Renombra el archivo
+        os.rename(src, dst)
 
-# Uso:
+# Uso de la función
 rename_files(r"C:/Users/Michael/Desktop/Tono - Ritmo/audios/lento_bajo", "lento_bajo_")
-
